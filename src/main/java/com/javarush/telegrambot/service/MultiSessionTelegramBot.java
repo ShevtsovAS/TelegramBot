@@ -1,4 +1,4 @@
-package com.javarush.telegrambot;
+package com.javarush.telegrambot.service;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

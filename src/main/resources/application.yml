@@ -1,0 +1,3 @@
+telegram-bot:
+  name: ${telegram_bot_name}
+  token: ${telegram_bot_token}

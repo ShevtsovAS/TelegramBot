@@ -1,4 +1,4 @@
-package com.javarush.telegrambot;
+package com.javarush.telegrambot.constants;
 
 public class TelegramBotContent {
     public static final String STEP_1_TEXT = """
