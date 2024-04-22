@@ -1,6 +1,7 @@
 package com.javarush.telegrambot.service;
 
 import com.javarush.telegrambot.config.TelegramBotProperties;
+import com.javarush.telegrambot.util.TelegramBotUtil;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
@@ -13,7 +14,9 @@ public class MyFirstTelegramBot extends MultiSessionTelegramBot {
 
     @Override
     public void onUpdateEventReceived(Update updateEvent) {
-        sendTextMessageAsync("Привет! *Я вас всех люблю!*");
-        sendTextMessageAsync("Привет! _Я вас всех люблю!_");
+        String userName = TelegramBotUtil.extractUserFirstName(updateEvent);
+        String botUserName = TelegramBotUtil.formatTelegramMessage(getBotUsername());
+        sendTextMessageAsync(String.format("Привет %s! Вот ты и создал своего первого бота на языке Java", userName));
+        sendTextMessageAsync(String.format("Ты дал мне имя - %s", botUserName));
     }
 }
