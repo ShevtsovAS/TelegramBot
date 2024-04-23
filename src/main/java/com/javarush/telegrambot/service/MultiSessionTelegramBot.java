@@ -34,6 +34,7 @@ public class MultiSessionTelegramBot extends TelegramLongPollingBot {
 
     private final ThreadLocal<Update> updateEvent = new ThreadLocal<>();
     private final HashMap<Long, Integer> gloryStorage = new HashMap<>();
+    private final HashMap<Long, Integer> userStep = new HashMap<>();
 
     private final List<Message> sendMessages = new ArrayList<>();
 
@@ -171,6 +172,11 @@ public class MultiSessionTelegramBot extends TelegramLongPollingBot {
         }
     }
 
+    public void resetUserStep() {
+        setUserGlory(0);
+        userStep.put(getCurrentChatId(), 1);
+    }
+
     public void setUserGlory(int glories) {
         gloryStorage.put(getCurrentChatId(), glories);
     }
@@ -181,6 +187,14 @@ public class MultiSessionTelegramBot extends TelegramLongPollingBot {
 
     public void addUserGlory(int glories) {
         gloryStorage.put(getCurrentChatId(), getUserGlory() + glories);
+    }
+
+    public int getUserStep() {
+        return userStep.getOrDefault(getCurrentChatId(), 0);
+    }
+
+    public void stepUp() {
+        userStep.put(getCurrentChatId(), getUserStep() + 1);
     }
 
     private SendPhoto createPhotoMessage(InputStream inputStream) {
