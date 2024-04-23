@@ -14,13 +14,14 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 @SuppressWarnings("unused")
 @RequiredArgsConstructor
@@ -99,7 +100,7 @@ public class MultiSessionTelegramBot extends TelegramLongPollingBot {
 
     public SendMessage createMessage(String text) {
         SendMessage message = new SendMessage();
-        message.setText(new String(text.getBytes(), StandardCharsets.UTF_8));
+        message.setText(new String(text.getBytes(), UTF_8));
         message.setParseMode("markdown");
         Long chatId = getCurrentChatId();
         message.setChatId(chatId);
@@ -121,7 +122,7 @@ public class MultiSessionTelegramBot extends TelegramLongPollingBot {
             String buttonValue = buttons.get(buttonName);
 
             InlineKeyboardButton button = new InlineKeyboardButton();
-            button.setText(new String(buttonName.getBytes(), StandardCharsets.UTF_8));
+            button.setText(new String(buttonName.getBytes(), UTF_8));
             button.setCallbackData(buttonValue);
 
             keyboard.add(List.of(button));
