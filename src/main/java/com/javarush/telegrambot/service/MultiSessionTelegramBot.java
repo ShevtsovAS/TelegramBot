@@ -1,7 +1,6 @@
 package com.javarush.telegrambot.service;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
@@ -23,7 +22,6 @@ import java.util.Map;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 @SuppressWarnings("unused")
-@RequiredArgsConstructor
 public abstract class MultiSessionTelegramBot extends TelegramLongPollingBot {
 
     @Getter
@@ -34,6 +32,12 @@ public abstract class MultiSessionTelegramBot extends TelegramLongPollingBot {
     private final ThreadLocal<Update> updateEvent = new ThreadLocal<>();
 
     private final List<Message> sendMessages = new ArrayList<>();
+
+    public MultiSessionTelegramBot(String botUsername, String botToken) {
+        super(botToken);
+        this.botUsername = botUsername;
+        this.botToken = botToken;
+    }
 
 
     @Override

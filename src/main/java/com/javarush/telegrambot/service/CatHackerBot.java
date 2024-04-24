@@ -3,6 +3,7 @@ package com.javarush.telegrambot.service;
 import com.javarush.telegrambot.config.TelegramBotProperties;
 import com.javarush.telegrambot.states.BotState;
 import com.javarush.telegrambot.states.Level1;
+import com.javarush.telegrambot.steps.CatHackerBotStep;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.stereotype.Service;
@@ -24,7 +25,15 @@ public class CatHackerBot extends MultiSessionTelegramBot {
 
     @Override
     public void onUpdateEventReceived() {
-        state.onUpdateEventReceived();
+        if ("/start".equals(getMessageText())) {
+            CatHackerBotStep.START.getCommand(this).execute();
+        }
+
+        if ("/glory".equals(getMessageText())) {
+            sendTextMessageAsync(String.format("_Накоплено: %s славы._", getUserGlory()));
+        }
+
+        CatHackerBotStep.getByStep(getUserStep()).ifPresent(step -> step.getCommand(this).execute());
     }
 
     public void resetUserStep() {
