@@ -4,9 +4,14 @@ import com.javarush.telegrambot.config.TelegramBotProperties;
 import com.javarush.telegrambot.steps.CatHackerBotStep;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
+import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
+import org.telegram.telegrambots.meta.api.objects.commands.BotCommand;
+import org.telegram.telegrambots.meta.api.objects.commands.scope.BotCommandScopeDefault;
 
 import java.util.HashMap;
+import java.util.List;
 
 @Setter
 @Getter
@@ -18,6 +23,7 @@ public class CatHackerBot extends MultiSessionTelegramBot {
 
     public CatHackerBot(TelegramBotProperties properties) {
         super(properties.getName(), properties.getToken());
+        initMainMenu(properties.getCommands());
     }
 
     @Override
@@ -56,5 +62,10 @@ public class CatHackerBot extends MultiSessionTelegramBot {
 
     public void stepUp() {
         userStep.put(getCurrentChatId(), getStep() + 1);
+    }
+
+    @SneakyThrows
+    private void initMainMenu(List<BotCommand> commands) {
+        execute(new SetMyCommands(commands, new BotCommandScopeDefault(), null));
     }
 }
