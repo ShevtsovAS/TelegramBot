@@ -43,8 +43,7 @@ public enum CatHackerBotStep {
         if (condition.test(bot)) {
             bot.stepUp();
             bot.addUserGlory(glory);
-            bot.sendPhotoMessageAsync(photoKey);
-            bot.sendTextMessageAsync(format(text, bot), buttons);
+            bot.sendPhotoMessageAsync(photoKey, format(text, bot), buttons);
         }
     }
 

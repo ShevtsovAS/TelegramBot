@@ -1,6 +1,7 @@
 package com.javarush.telegrambot.service;
 
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
@@ -18,6 +19,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -89,7 +91,29 @@ public abstract class MultiSessionTelegramBot extends TelegramLongPollingBot {
     }
 
     public void sendPhotoMessageAsync(String photoKey) {
+        sendPhotoMessageAsync(photoKey, null, null);
+    }
+
+    public void sendPhotoMessageAsync(String photoKey, String text) {
+        sendPhotoMessageAsync(photoKey, text, null);
+    }
+
+    public void sendPhotoMessageAsync(String photoKey, Map<String, String> buttons) {
+        sendPhotoMessageAsync(photoKey, null, buttons);
+    }
+
+    public void sendPhotoMessageAsync(String photoKey, String text, Map<String, String> buttons) {
         SendPhoto photo = createPhotoMessage(photoKey);
+
+        if (StringUtils.isNotBlank(text)) {
+            photo.setParseMode("markdown");
+            photo.setCaption(text);
+        }
+
+        if (Objects.nonNull(buttons)  && !buttons.isEmpty()) {
+            attachButtons(photo, buttons);
+        }
+
         executeAsync(photo);
     }
 
@@ -114,7 +138,17 @@ public abstract class MultiSessionTelegramBot extends TelegramLongPollingBot {
         return message;
     }
 
+    private void attachButtons(SendPhoto photo, Map<String, String> buttons) {
+        InlineKeyboardMarkup markup = getInlineKeyboardMarkup(buttons);
+        photo.setReplyMarkup(markup);
+    }
+
     private void attachButtons(SendMessage message, Map<String, String> buttons) {
+        InlineKeyboardMarkup markup = getInlineKeyboardMarkup(buttons);
+        message.setReplyMarkup(markup);
+    }
+
+    private static InlineKeyboardMarkup getInlineKeyboardMarkup(Map<String, String> buttons) {
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
 
@@ -129,7 +163,7 @@ public abstract class MultiSessionTelegramBot extends TelegramLongPollingBot {
         }
 
         markup.setKeyboard(keyboard);
-        message.setReplyMarkup(markup);
+        return markup;
     }
 
     public SendPhoto createPhotoMessage(String name) {
