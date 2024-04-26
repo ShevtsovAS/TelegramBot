@@ -1,8 +1,10 @@
 package com.javarush.telegrambot.service;
 
 import lombok.Getter;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
@@ -46,6 +48,7 @@ public abstract class MultiSessionTelegramBot extends TelegramLongPollingBot {
     public final void onUpdateReceived(Update updateEvent) {
         this.updateEvent.set(updateEvent);
         onUpdateEventReceived();
+        answerCallbackQuery();
     }
 
     public abstract void onUpdateEventReceived();
@@ -110,7 +113,7 @@ public abstract class MultiSessionTelegramBot extends TelegramLongPollingBot {
             photo.setCaption(text);
         }
 
-        if (Objects.nonNull(buttons)  && !buttons.isEmpty()) {
+        if (Objects.nonNull(buttons) && !buttons.isEmpty()) {
             attachButtons(photo, buttons);
         }
 
@@ -219,4 +222,28 @@ public abstract class MultiSessionTelegramBot extends TelegramLongPollingBot {
             throw new RuntimeException("Can't create photo message!");
         }
     }
+
+    @SneakyThrows
+    public void answerCallbackQuery() {
+        answerCallbackQuery(null, false);
+    }
+
+    @SneakyThrows
+    public void answerCallbackQuery(String text) {
+        answerCallbackQuery(text, false);
+    }
+
+    @SneakyThrows
+    public void answerCallbackQuery(String text, boolean showAlert) {
+        if (updateEvent.get().hasCallbackQuery()) {
+            String callbackQueryId = updateEvent.get().getCallbackQuery().getId();
+            AnswerCallbackQuery answer = new AnswerCallbackQuery(callbackQueryId);
+            if (StringUtils.isNotBlank(text)) {
+                answer.setText(text);
+            }
+            answer.setShowAlert(showAlert);
+            execute(answer);
+        }
+    }
+
 }

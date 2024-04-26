@@ -44,6 +44,8 @@ public enum CatHackerBotStep {
             bot.stepUp();
             bot.addUserGlory(glory);
             bot.sendPhotoMessageAsync(photoKey, format(text, bot), buttons);
+        } else {
+            bot.answerCallbackQuery(TASK_COMPLETED_TEXT, true);
         }
     }
 

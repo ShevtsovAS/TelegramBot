@@ -13,6 +13,8 @@ import org.telegram.telegrambots.meta.api.objects.commands.scope.BotCommandScope
 import java.util.HashMap;
 import java.util.List;
 
+import static com.javarush.telegrambot.constants.TelegramBotContent.GAME_OVER_TEXT;
+
 @Setter
 @Getter
 @Service
@@ -26,6 +28,7 @@ public class CatHackerBot extends MultiSessionTelegramBot {
         initMainMenu(properties.getCommands());
     }
 
+    @SneakyThrows
     @Override
     public void onUpdateEventReceived() {
         if ("/start".equals(getMessageText())) {
@@ -36,7 +39,9 @@ public class CatHackerBot extends MultiSessionTelegramBot {
             sendTextMessageAsync(String.format("_Накоплено: %s славы._", getUserGlory()));
         }
 
-        CatHackerBotStep.getCurrentStep(this).ifPresent(step -> step.execute(this));
+        CatHackerBotStep.getCurrentStep(this).ifPresentOrElse(
+                step -> step.execute(this),
+                () -> answerCallbackQuery(GAME_OVER_TEXT, true));
     }
 
     public void resetStep() {
