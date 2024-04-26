@@ -39,6 +39,10 @@ public class CatHackerBot extends MultiSessionTelegramBot {
             sendTextMessageAsync(String.format("_Накоплено: %s славы._", getUserGlory()));
         }
 
+        if ("/about".equals(getMessageText())) {
+            getBotDescription();
+        }
+
         CatHackerBotStep.getCurrentStep(this).ifPresentOrElse(
                 step -> step.execute(this),
                 () -> answerCallbackQuery(GAME_OVER_TEXT, true));

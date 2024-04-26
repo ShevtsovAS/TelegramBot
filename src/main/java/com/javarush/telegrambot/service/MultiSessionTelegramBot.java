@@ -1,5 +1,6 @@
 package com.javarush.telegrambot.service;
 
+import com.javarush.telegrambot.method.GetBotDescription;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
@@ -71,6 +72,15 @@ public abstract class MultiSessionTelegramBot extends TelegramLongPollingBot {
 
     public String getCallbackQueryButtonKey() {
         return updateEvent.get().hasCallbackQuery() ? updateEvent.get().getCallbackQuery().getData() : "";
+    }
+
+    public void getBotDescription() {
+        try {
+            var task = sendApiMethodAsync(new GetBotDescription());
+            sendTextMessageAsync(task.get().getDescription());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void sendTextMessageAsync(String text) {

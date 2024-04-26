@@ -6,8 +6,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.telegram.telegrambots.meta.api.objects.commands.BotCommand;
 
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 @Data
 @Generated
@@ -16,7 +16,7 @@ import java.util.Map;
 public class TelegramBotProperties {
     private String name;
     private String token;
-    private Map<String, String> mainMenu;
+    private LinkedHashMap<String, String> mainMenu;
 
     public List<BotCommand> getCommands() {
         return mainMenu.entrySet().stream()
