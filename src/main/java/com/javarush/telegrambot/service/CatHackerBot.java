@@ -22,11 +22,15 @@ import static com.javarush.telegrambot.constants.TelegramBotContent.GAME_OVER_TE
 @Service
 public class CatHackerBot extends MultiSessionTelegramBot {
 
+    private final CommandExecutorProvider commandExecutorProvider;
     private final HashMap<Long, Integer> gloryStorage = new HashMap<>();
     private final HashMap<Long, Integer> userStep = new HashMap<>();
 
-    public CatHackerBot(TelegramBotsApi botsApi, TelegramBotProperties properties) throws TelegramApiException {
+    public CatHackerBot(TelegramBotsApi botsApi,
+                        TelegramBotProperties properties,
+                        CommandExecutorProvider commandExecutorProvider) throws TelegramApiException {
         super(properties.getName(), properties.getToken());
+        this.commandExecutorProvider = commandExecutorProvider;
         botsApi.registerBot(this);
         initMainMenu(properties.getCommands());
     }
@@ -34,18 +38,8 @@ public class CatHackerBot extends MultiSessionTelegramBot {
     @SneakyThrows
     @Override
     public void onUpdateEventReceived() {
-        if ("/start".equals(getMessageText())) {
-            resetStep();
-        }
-
-        if ("/glory".equals(getMessageText())) {
-            sendTextMessageAsync(String.format("_Накоплено: %s славы._", getUserGlory()));
-        }
-
-        if ("/about".equals(getMessageText())) {
-            getBotDescription();
-        }
-
+        String message = getMessageText();
+        commandExecutorProvider.getByMessage(message).execute(this);
         CatHackerBotStep.getCurrentStep(this).ifPresentOrElse(
                 step -> step.execute(this),
                 () -> answerCallbackQuery(GAME_OVER_TEXT, true));
