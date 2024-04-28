@@ -3,6 +3,7 @@ package com.javarush.telegrambot.service;
 import com.javarush.telegrambot.method.GetBotDescription;
 import lombok.Getter;
 import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
@@ -19,14 +20,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 @SuppressWarnings("unused")
+@Log4j2
 public abstract class MultiSessionTelegramBot extends TelegramLongPollingBot {
 
     @Getter
@@ -75,32 +74,37 @@ public abstract class MultiSessionTelegramBot extends TelegramLongPollingBot {
     }
 
     public void getBotDescription() {
-        try {
-            var task = sendApiMethodAsync(new GetBotDescription());
-            sendTextMessageAsync(task.get().getDescription());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        Long chatId = getCurrentChatId();
+        sendApiMethodAsync(new GetBotDescription()).whenComplete((result, throwable) -> {
+            if (throwable == null) {
+                sendTextMessageAsync(result.getDescription(), chatId);
+            } else {
+                log.error(throwable.getMessage());
+            }
+        });
     }
 
     public void sendTextMessageAsync(String text) {
-        try {
-            SendMessage message = createMessage(text);
-            var task = sendApiMethodAsync(message);
-            this.sendMessages.add(task.get());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        sendTextMessageAsync(text, null, null);
+    }
+
+    public void sendTextMessageAsync(String text, Long chatId) {
+        sendTextMessageAsync(text, chatId, null);
     }
 
     public void sendTextMessageAsync(String text, Map<String, String> buttons) {
-        try {
-            SendMessage message = createMessage(text, buttons);
-            var task = sendApiMethodAsync(message);
-            this.sendMessages.add(task.get());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        sendTextMessageAsync(text, null, buttons);
+    }
+
+    public void sendTextMessageAsync(String text, Long chatId, Map<String, String> buttons) {
+        SendMessage message = createMessage(text, chatId, buttons);
+        sendApiMethodAsync(message).whenComplete((msg, throwable) -> {
+            if (throwable == null) {
+                sendMessages.add(msg);
+            } else {
+                log.error(throwable.getMessage());
+            }
+        });
     }
 
     public void sendPhotoMessageAsync(String photoKey) {
@@ -131,23 +135,26 @@ public abstract class MultiSessionTelegramBot extends TelegramLongPollingBot {
     }
 
     public void sendImageMessageAsync(String imagePath) {
-        SendPhoto photo = createPhotoMessage(Path.of(imagePath));
+        SendPhoto photo = createPhotoMessage(Path.of(imagePath), getCurrentChatId());
         executeAsync(photo);
     }
 
     public SendMessage createMessage(String text) {
-        SendMessage message = new SendMessage();
-        message.setText(new String(text.getBytes(), UTF_8));
-        message.setParseMode("markdown");
-        Long chatId = getCurrentChatId();
-        message.setChatId(chatId);
-        return message;
+        return createMessage(text, null, null);
     }
 
     public SendMessage createMessage(String text, Map<String, String> buttons) {
-        SendMessage message = createMessage(text);
-        if (buttons != null && !buttons.isEmpty())
+        return createMessage(text, null, buttons);
+    }
+
+    public SendMessage createMessage(String text, Long chatId, Map<String, String> buttons) {
+        SendMessage message = new SendMessage();
+        message.setText(new String(text.getBytes(), UTF_8));
+        message.setParseMode("markdown");
+        message.setChatId(Optional.ofNullable(chatId).orElseGet(this::getCurrentChatId));
+        if (buttons != null && !buttons.isEmpty()) {
             attachButtons(message, buttons);
+        }
         return message;
     }
 
@@ -181,17 +188,17 @@ public abstract class MultiSessionTelegramBot extends TelegramLongPollingBot {
 
     public SendPhoto createPhotoMessage(String name) {
         try {
-            var is = ClassLoader.getSystemResourceAsStream("images/" + name + ".jpg");
-            return createPhotoMessage(is);
+            var is = ClassLoader.getSystemResourceAsStream(String.format("images/%s.jpg", name));
+            return createPhotoMessage(is, getCurrentChatId());
         } catch (Exception e) {
             throw new RuntimeException("Can't create photo message!");
         }
     }
 
-    public SendPhoto createPhotoMessage(Path path) {
+    public SendPhoto createPhotoMessage(Path path, Long chatId) {
         try {
             var is = Files.newInputStream(path);
-            return createPhotoMessage(is);
+            return createPhotoMessage(is, chatId);
         } catch (IOException e) {
             throw new RuntimeException("Can't create image message!");
         }
@@ -218,14 +225,13 @@ public abstract class MultiSessionTelegramBot extends TelegramLongPollingBot {
         }
     }
 
-    private SendPhoto createPhotoMessage(InputStream inputStream) {
+    private SendPhoto createPhotoMessage(InputStream inputStream, Long chatId) {
         try {
             InputFile inputFile = new InputFile();
             inputFile.setMedia(inputStream, botUsername);
 
             SendPhoto photo = new SendPhoto();
             photo.setPhoto(inputFile);
-            Long chatId = getCurrentChatId();
             photo.setChatId(chatId);
             return photo;
         } catch (Exception e) {

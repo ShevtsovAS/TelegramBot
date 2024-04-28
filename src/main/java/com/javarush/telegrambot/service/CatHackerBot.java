@@ -6,9 +6,11 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
+import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
 import org.telegram.telegrambots.meta.api.objects.commands.BotCommand;
 import org.telegram.telegrambots.meta.api.objects.commands.scope.BotCommandScopeDefault;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.HashMap;
 import java.util.List;
@@ -23,8 +25,9 @@ public class CatHackerBot extends MultiSessionTelegramBot {
     private final HashMap<Long, Integer> gloryStorage = new HashMap<>();
     private final HashMap<Long, Integer> userStep = new HashMap<>();
 
-    public CatHackerBot(TelegramBotProperties properties) {
+    public CatHackerBot(TelegramBotsApi botsApi, TelegramBotProperties properties) throws TelegramApiException {
         super(properties.getName(), properties.getToken());
+        botsApi.registerBot(this);
         initMainMenu(properties.getCommands());
     }
 
