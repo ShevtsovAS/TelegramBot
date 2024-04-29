@@ -1,1 +1,1 @@
-web: java -jar target/TelegramBot-1.0-SNAPSHOT.jar
+queue: java -jar target/TelegramBot-1.0-SNAPSHOT.jar
