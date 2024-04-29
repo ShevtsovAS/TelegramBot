@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.core.io.ClassPathResource;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -21,8 +22,6 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 @SuppressWarnings("unused")
 @Log4j2
@@ -149,7 +148,7 @@ public abstract class MultiSessionTelegramBot extends TelegramLongPollingBot {
 
     public SendMessage createMessage(String text, Long chatId, Map<String, String> buttons) {
         SendMessage message = new SendMessage();
-        message.setText(new String(text.getBytes(), UTF_8));
+        message.setText(text);
         message.setParseMode("markdown");
         message.setChatId(Optional.ofNullable(chatId).orElseGet(this::getCurrentChatId));
         if (buttons != null && !buttons.isEmpty()) {
@@ -176,7 +175,7 @@ public abstract class MultiSessionTelegramBot extends TelegramLongPollingBot {
             String buttonValue = buttons.get(buttonName);
 
             InlineKeyboardButton button = new InlineKeyboardButton();
-            button.setText(new String(buttonName.getBytes(), UTF_8));
+            button.setText(buttonName);
             button.setCallbackData(buttonValue);
 
             keyboard.add(List.of(button));
@@ -188,7 +187,8 @@ public abstract class MultiSessionTelegramBot extends TelegramLongPollingBot {
 
     public SendPhoto createPhotoMessage(String name) {
         try {
-            var is = ClassLoader.getSystemResourceAsStream(String.format("images/%s.jpg", name));
+            ClassPathResource classPathResource = new ClassPathResource(String.format("images/%s.jpg", name));
+            var is = classPathResource.getInputStream();
             return createPhotoMessage(is, getCurrentChatId());
         } catch (Exception e) {
             throw new RuntimeException("Can't create photo message!");
